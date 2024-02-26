@@ -42,10 +42,15 @@ userRouter.post("/signup", async function (req, res) {
   });
   const userAccount = new Account({
     userId: id,
-    balance: Math.random() * 1e5,
+    balance: Math.floor(Math.random() * 1e5),
+    lock: false,
   });
+  const payload = {
+    userId: id,
+    exp: Math.floor(Date.now() / 1000) + 30 * 60,
+  };
   await userAccount.save();
-  const signed_id = jwt.sign({ id: id }, JWT_SECRET);
+  const signed_id = jwt.sign(payload, JWT_SECRET);
   res.status(200).json({
     msg: "Saved Successfully",
     token: signed_id,

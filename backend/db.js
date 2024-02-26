@@ -35,6 +35,10 @@ const accountSchema = new mongoose.Schema({
     type: Number,
     required: true,
   },
+  lock: {
+    type: Boolean,
+    required: true,
+  },
 });
 
 const User = mongoose.model("User", userSchema);

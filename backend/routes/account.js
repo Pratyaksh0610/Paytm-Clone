@@ -1,5 +1,6 @@
 const express = require("express");
 const authMiddleware = require("./middleware");
+const mongoose = require("mongoose");
 const { Account } = require("../db");
 
 const accountRouter = express.Router();
@@ -7,61 +8,57 @@ const accountRouter = express.Router();
 accountRouter.get("/balance", authMiddleware, async function (req, res) {
   const id = req.userId;
   const userAccount = await Account.find({ userId: id });
+
   res.status(200).json({
-    balance: userAccount.balance,
+    balance: userAccount[0].balance,
   });
 });
 
 accountRouter.post("/transfer", authMiddleware, async function (req, res) {
-  const firstUserId = req.userId;
-  const secondUserId = req.body.to;
-  const transferAmount = req.body.amount;
+  const fromAccountNumber = req.userId;
+  const toAccountNumber = req.body.to;
+  const amount = req.body.amount;
+
   const session = await mongoose.startSession();
   session.startTransaction();
   try {
     // Find sender's account and update balance
     const senderAccount = await Account.findOneAndUpdate(
-      { userId: firstUserId },
-      { $inc: { balance: -transferAmount } }, // Subtract amount from balance
+      { userId: fromAccountNumber, balance: { $gte: amount }, lock: false },
+      { $inc: { balance: -amount }, $set: { lock: true } },
       { new: true, session }
     );
 
-    // Find receiver's account and update balance
     const receiverAccount = await Account.findOneAndUpdate(
-      { accountNumber: secondUserId },
-      { $inc: { balance: transferAmount } }, // Add amount to balance
+      { userId: toAccountNumber },
+      { $inc: { balance: amount } },
       { new: true, session }
     );
 
-    // If either account is not found, rollback the transaction
     if (!senderAccount || !receiverAccount) {
+      res.status(400).json({
+        msg: "Either account not found or not enough balance or already locked",
+      });
       await session.abortTransaction();
       session.endSession();
-      res.status(400).json({
-        msg: "Either insufficient balance or accounts not found",
-      });
       return;
-      //   throw new Error("One or both accounts not found");
     }
 
-    // Commit the transaction
     await session.commitTransaction();
     session.endSession();
-
-    // Return the updated accounts
+    await Account.updateOne(
+      { userId: fromAccountNumber },
+      { $set: { lock: false } }
+    );
     res.status(200).json({
-      msg: "Transfer Successful",
+      msg: "Succesfully transfered",
     });
-    return;
   } catch (error) {
-    // If an error occurs, rollback the transaction and throw the error
     await session.abortTransaction();
     session.endSession();
     res.status(400).json({
-      msg: "Dikkat",
+      msg: "Some error occured, found in catch block",
     });
-
-    // throw error;
   }
 });
 
