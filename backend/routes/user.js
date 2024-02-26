@@ -1,10 +1,10 @@
 const express = require("express");
 const zod = require("zod");
-const { User } = require("../db");
+const { User, Account } = require("../db");
 const jwt = require("jsonwebtoken");
 const JWT_SECRET = require("../config");
 const authMiddleware = require("./middleware");
-const app = express();
+
 console.log("Inside userRouter");
 
 const userRouter = express.Router();
@@ -40,6 +40,11 @@ userRouter.post("/signup", async function (req, res) {
   await user.save().then((savedUser) => {
     id = savedUser._id;
   });
+  const userAccount = new Account({
+    userId: id,
+    balance: Math.random() * 1e5,
+  });
+  await userAccount.save();
   const signed_id = jwt.sign({ id: id }, JWT_SECRET);
   res.status(200).json({
     msg: "Saved Successfully",
@@ -94,9 +99,9 @@ userRouter.put("/", authMiddleware, async (req, res) => {
 
 userRouter.get("/bulk", async function (req, res) {
   const filter = req.query.filter || "";
-  const lName = req.query.filter || "";
+  // const lName = req.query.filter || "";
   const userList = await User.find({
-    $or: [{ firstName: fName }, { lastName: lName }],
+    $or: [{ firstName: filter }, { lastName: filter }],
   });
   res.status(200).json(userList);
 });
