@@ -1,2 +1,2 @@
 # Paytm-clone
- This is a Full-Stack Paytm Clone
+ This is a Full-Stack Paytm project in development
