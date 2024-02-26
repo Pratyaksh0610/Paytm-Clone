@@ -12,14 +12,24 @@ const authMiddleware = (req, res, next) => {
   // console.log(token);
 
   try {
+    const decodedToken = jwt.decode(token);
+    if (decodedToken && decodedToken.exp) {
+      const expirationTime = decodedToken.exp;
+      const currentTime = Math.floor(Date.now() / 1000); // Convert milliseconds to seconds
+
+      if (currentTime > expirationTime) {
+        res.status(400).json({
+          msg: "Token expired",
+        });
+        return;
+      }
+    }
     const decoded = jwt.verify(token, JWT_SECRET);
     req.userId = decoded.userId;
-    // console.log(decoded);
 
     next();
   } catch (err) {
-    console.log(err);
-    return res.status(403).json({ msg: "Error in token or token expired" });
+    return res.status(403).json({ msg: "Error in token" });
   }
 };
 
