@@ -15,10 +15,13 @@ accountRouter.get("/balance", authMiddleware, async function (req, res) {
 });
 
 accountRouter.post("/transfer", authMiddleware, async function (req, res) {
+  console.log("request reached for transfer");
   const fromAccountNumber = req.userId;
   const toAccountNumber = req.body.to;
   const amount = req.body.amount;
-
+  // console.log(fromAccountNumber);
+  // console.log(toAccountNumber);
+  // console.log(amount);
   const session = await mongoose.startSession();
   session.startTransaction();
   try {
@@ -43,6 +46,7 @@ accountRouter.post("/transfer", authMiddleware, async function (req, res) {
       session.endSession();
       return;
     }
+    // console.log("session start");
 
     await session.commitTransaction();
     session.endSession();
@@ -50,10 +54,12 @@ accountRouter.post("/transfer", authMiddleware, async function (req, res) {
       { userId: fromAccountNumber },
       { $set: { lock: false } }
     );
+    console.log("ho gya");
     res.status(200).json({
       msg: "Succesfully transfered",
     });
   } catch (error) {
+    console.log("Fas gaya transfer catch mei");
     await session.abortTransaction();
     session.endSession();
     res.status(400).json({

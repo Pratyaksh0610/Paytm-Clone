@@ -4,12 +4,63 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import randomColor from "randomcolor";
-import { Button } from "@material-tailwind/react";
 
+const Modal = ({ isOpen, onClose, children }) => {
+  if (!isOpen) return null;
+  const [amount, setAmount] = useState(0);
+  const post = () => {
+    const headers = {
+      Authorization: "Bearer " + Cookies.get("jwtoken"),
+    };
+    try {
+      console.log(receriverId);
+      console.log(amount);
+      axios
+        .post(
+          "http://localhost:3000/api/v1/account/transfer",
+          { to: receriverId, amount: amount },
+          { headers }
+        )
+        .then((res) => {
+          if (res.status == 200) {
+            alert("Transfer successful");
+          } else {
+            alert("Transfer unsuccessful, Low balance");
+          }
+        })
+        .catch(() => {
+          alert("Transfer unsuccessful");
+        });
+    } catch {
+      alert("Transaction failed");
+    }
+  };
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center overflow-auto bg-black bg-opacity-50">
+      <div className="relative bg-white rounded-lg w-96 p-6">
+        <input
+          type="number"
+          placeholder="0"
+          onChange={(e) => setAmount(e.target.value)}
+        ></input>
+        <button onClick={post}>Transfer</button>
+        <span
+          className="absolute top-0 right-0 mt-4 mr-4 cursor-pointer"
+          onClick={onClose}
+        >
+          &times;
+        </span>
+        {children}
+      </div>
+    </div>
+  );
+};
+let megaUserId = null;
 export function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [userBalance, setuserBalance] = useState(null);
   const [userData, setuserData] = useState(null);
+  // const [userId,setuserId]=useState(0);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -23,8 +74,9 @@ export function Dashboard() {
         .then((res) => {
           if (res.status == 200) {
             console.log("RECEVIED");
-            console.log(res.data.firstName);
-            setuserData(res.data.firstName);
+            console.log(res.data);
+            setuserData(res.data);
+            megaUserId = res.data.userId;
           } else {
             console.log("FAILED");
             navigate("/signin");
@@ -55,7 +107,9 @@ export function Dashboard() {
             <h1 className="text-2xl font-bold text-black">Payments App</h1>
           </div>
           <div>
-            <h2 className="text-lg font-semibold">Hello, {userData}</h2>
+            <h2 className="text-lg font-semibold">
+              Hello, {userData.firstName}
+            </h2>
           </div>
         </div>
         <hr className="border-b-2 border-gray-400" />
@@ -68,10 +122,23 @@ export function Dashboard() {
     </>
   );
 }
+let receriverId = null;
 function Userlist() {
   const [searchTerm, setSearchTerm] = useState("");
   const [typingTimeout, setTypingTimeout] = useState(null);
   const [arr, setArr] = useState([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const handleOpenModal = (sendtoId) => {
+    receriverId = sendtoId;
+    console.log("receiver id is");
+    console.log(sendtoId);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+  };
   // let arr = [];
 
   const handleSearch = (value) => {
@@ -129,7 +196,6 @@ function Userlist() {
             onChange={handleChange}
           />
 
-          {/* <MatchingUsers props={arr} /> */}
           {arr.map((user, index) => (
             <div className="flex justify-between" key={index}>
               <div className="flex justify-start">
@@ -138,6 +204,7 @@ function Userlist() {
                   style={{ backgroundColor: randomColor() }}
                 >
                   {user.firstName.charAt(0)}
+                  {user.lastName.charAt(0)}
                 </div>
                 <div className="pl-4 h-10 flex items-center justify-center  text-black font-semibold text-lg">
                   <p className="font-bold">
@@ -145,14 +212,22 @@ function Userlist() {
                   </p>
                 </div>
               </div>
-              <button className="relative inline-flex items-center justify-center p-0.5 mb-2 me-2 overflow-hidden text-sm font-medium text-gray-900 rounded-lg group bg-gradient-to-br from-purple-500 to-pink-500 group-hover:from-purple-500 group-hover:to-pink-500 hover:text-white dark:text-white focus:ring-4 focus:outline-none focus:ring-purple-200 dark:focus:ring-purple-800 ">
-                <span class="relative px-5 py-2.5 transition-all ease-in duration-75 bg-white dark:bg-gray-900 rounded-md group-hover:bg-opacity-0">
+              <button
+                className="relative inline-flex items-center justify-center p-0.5 mb-2 me-2 overflow-hidden text-sm font-medium text-gray-900 rounded-lg group bg-gradient-to-br from-purple-500 to-pink-500 group-hover:from-purple-500 group-hover:to-pink-500 hover:text-white dark:text-white focus:ring-4 focus:outline-none focus:ring-purple-200 dark:focus:ring-purple-800 "
+                onClick={() => handleOpenModal(user._id)}
+              >
+                <span className="relative px-5 py-2.5 transition-all ease-in duration-75 bg-white dark:bg-gray-900 rounded-md group-hover:bg-opacity-0">
                   Send Money
                 </span>
               </button>
             </div>
           ))}
         </div>
+
+        <Modal isOpen={isModalOpen} onClose={handleCloseModal}>
+          <h2 className="text-lg font-bold mb-4">Modal Content</h2>
+          <p>This is the content of the modal.</p>
+        </Modal>
       </div>
     </>
   );
