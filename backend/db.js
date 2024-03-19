@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 // const { number, Schema } = require("zod");
 
 mongoose.connect(
-  "mongodb+srv://pratyaksh06:facebook123@cluster0.ngnfrai.mongodb.net/paytm"
+  "mongodb+srv://tester:Facebook1406099@cluster0.ngnfrai.mongodb.net/paytm"
 );
 
 const userSchema = new mongoose.Schema({
