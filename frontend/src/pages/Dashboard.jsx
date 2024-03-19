@@ -37,13 +37,22 @@ const Modal = ({ isOpen, onClose, children }) => {
   };
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center overflow-auto bg-black bg-opacity-50">
-      <div className="relative bg-white rounded-lg w-96 p-6">
+      <div className="relative bg-white rounded-lg w-96 p-6 text-center justify-evenly">
+        <h1 className="font-bold text-xl pb-4">Send Money</h1>
         <input
+          className="my-4 mb-8 w-full text-center h-8"
           type="number"
-          placeholder="0"
+          placeholder="Enter Amount"
           onChange={(e) => setAmount(e.target.value)}
-        ></input>
-        <button onClick={post}>Transfer</button>
+        />
+        <button
+          class="relative inline-flex items-center justify-center p-0.5 mb-2 me-2 overflow-hidden text-sm font-medium text-gray-900 rounded-lg group bg-gradient-to-br from-purple-500 to-pink-500 group-hover:from-purple-500 group-hover:to-pink-500 hover:text-white dark:text-white focus:ring-4 focus:outline-none focus:ring-purple-200 dark:focus:ring-purple-800 w-8/12"
+          onClick={post}
+        >
+          <span class="relative px-5 py-2.5 transition-all ease-in duration-75 bg-white dark:bg-gray-900 rounded-md group-hover:bg-opacity-0 w-full">
+            Transfer
+          </span>
+        </button>
         <span
           className="absolute top-0 right-0 mt-4 mr-4 cursor-pointer"
           onClick={onClose}
@@ -224,10 +233,7 @@ function Userlist() {
           ))}
         </div>
 
-        <Modal isOpen={isModalOpen} onClose={handleCloseModal}>
-          <h2 className="text-lg font-bold mb-4">Modal Content</h2>
-          <p>This is the content of the modal.</p>
-        </Modal>
+        <Modal isOpen={isModalOpen} onClose={handleCloseModal} />
       </div>
     </>
   );
