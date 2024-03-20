@@ -1,9 +1,12 @@
+require("dotenv").config();
+const mongoUrl = process.env.REACT_APP_MONGO_URL;
 const mongoose = require("mongoose");
+// const process = require("process");
 // const { number, Schema } = require("zod");
+// console.log(mongoUrl);
+// console.log(process.env);
 
-mongoose.connect(
-  "mongodb+srv://tester:Facebook1406099@cluster0.ngnfrai.mongodb.net/paytm"
-);
+mongoose.connect(mongoUrl);
 
 const userSchema = new mongoose.Schema({
   username: {
